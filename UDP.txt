@@ -1,0 +1,93 @@
+//UDPclient
+package udpcs;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.Scanner;
+
+public class UDPClient {
+    DatagramSocket udpSocket;
+    InetAddress serverAddress;
+    int port;
+    Scanner scanner;
+    
+    public UDPClient(int port) {
+        this.port = port;
+    }
+    
+    public void sendReq() {    	
+        String in;
+        try {
+        	udpSocket = new DatagramSocket();
+        	InetAddress host = InetAddress.getLocalHost();
+	        serverAddress = InetAddress.getByName(host.getHostName());
+	        
+	        BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
+	        System.out.println("UDP Client started at " + InetAddress.getLocalHost());
+        
+	        while (true) {
+	            in = keyRead.readLine();
+	            DatagramPacket p = new DatagramPacket(in.getBytes(), in.getBytes().length, serverAddress, port);
+	            udpSocket.send(p);                    
+	        }
+        }
+        catch(Exception e) {
+        	System.out.println(e.getMessage());
+		}
+    }
+    
+    public static void main(String[] args) {        
+        UDPClient sender = new UDPClient(5000);
+        sender.sendReq();
+    }
+}
+
+//UDPServer
+
+package udpcs;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class UDPServer {
+    private DatagramSocket udpSocket;
+    private int port;
+ 
+    public UDPServer(int port) {
+        this.port = port;
+    }
+    
+    private void listen() {
+    	try {
+	    	DatagramSocket udpSocket = new DatagramSocket(port);
+	        System.out.println("Server started at " + InetAddress.getLocalHost());
+	        String msg;
+	        
+	        while (true) {
+	            byte[] buf = new byte[1024];
+	            DatagramPacket packet = new DatagramPacket(buf, buf.length);
+	            
+	            // blocks until a packet is received
+	            udpSocket.receive(packet);
+	            msg = new String(packet.getData()).trim();
+	            
+	            System.out.println("Message from " + packet.getAddress().getHostAddress() + ": " + msg);
+	        }
+    	}
+        catch(Exception e) {
+        	System.out.println(e.getMessage());
+        }
+    	finally {
+    		udpSocket.close();
+    	}
+    }
+    
+    public static void main(String[] args) {
+        UDPServer client = new UDPServer(5000);
+        client.listen();
+    }
+}
